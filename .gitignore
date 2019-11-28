@@ -2,7 +2,7 @@
 /models/
 /checkpoint
 /dist/
-/test/data/
+data/
 /examples/
 
 
@@ -12,6 +12,7 @@ Thumbs.db
 .ipynb_checkpoints/
 .directory
 /.idea/
+*.h5ad
 
 # Python / Byte-compiled / optimized / DLL
 __pycache__/

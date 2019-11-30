@@ -1,14 +1,13 @@
 from  utils import train_test_split
-from ._losses import MSE_kl
+from model._losses import MSE_kl, mmd
 from torch.utils.data import DataLoader
 import torch
 from collections import defaultdict
-from .data_loader import CustomDatasetFromAdata
+from model.data_loader import CustomDatasetFromAdata
 import  numpy as np
 
 
-
-class modelTrainer():
+class ModelTrainer:
     def __init__(self, model, adata,
                  condition_key="condition", seed=0, print_every=1000,
                  learning_rate=0.001, validation_itr=5, train_frac=0.85):
@@ -34,7 +33,68 @@ class modelTrainer():
         self.model.label_encoder = data_set_train.get_label_ecnoder()
         return data_set_train, data_set_valid
 
-    def train(self, n_epochs=100, batch_size=64, early_patience=15):
+    def train_trvae(self, n_epochs=100, batch_size=64, early_patience=15):
+
+        es = EarlyStopping(patience=early_patience)
+        dataset_train, dataset_valid = self.make_dataset()
+        data_loader_train = torch.utils.data.DataLoader(dataset=dataset_train,
+                                                        batch_size=batch_size,
+                                                        shuffle=True)
+        data_loader_valid = torch.utils.data.DataLoader(dataset=dataset_valid,
+                                                        batch_size=batch_size,
+                                                        shuffle=True)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        self.logs = defaultdict(list)
+        self.model.train()
+        for epoch in range(n_epochs):
+            train_loss = 0
+            train_rec = 0
+            train_kl = 0
+            train_mmd = 0
+            for iteration, (x, y) in enumerate(data_loader_train):
+                if y is not None:
+                    x, y = x.to(self.device), y.to(self.device)
+                else:
+                    x = x.to(self.device)
+
+                recon_x, mean, log_var, y_mmd = self.model(x, y)
+                vae_loss, reconstruction_loss, kl_loss = MSE_kl(recon_x, x, mean, log_var, self.model.alpha)
+                mmd_calculator = mmd(self.model.num_cls, self.model.beta)
+                mdd_loss = mmd_calculator(y_mmd, y)
+                loss = vae_loss + mdd_loss
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item()
+                train_rec += reconstruction_loss.item()
+                train_kl += kl_loss.item()
+                train_mmd += mdd_loss.item()
+                if iteration % self.print_loss == 0 or iteration == len(data_loader_train) - 1:
+                    print("Epoch {:02d}/{:02d} Batch {:04d}/{:d}, Loss: {:9.4f}, "
+                          "rec_loss: {:9.4f}, KL_loss: {:9.4f}, MMD_loss:  {:9.4f}".format(
+                        epoch, n_epochs, iteration, len(data_loader_train) - 1,
+                        loss.item(), reconstruction_loss.item(), kl_loss.item(), mdd_loss.item()))
+            self.logs['loss_train'].append(train_loss/iteration)
+            self.logs["rec_loss_train"].append(train_rec/iteration)
+            self.logs["KL_loss_train"].append(train_kl/iteration)
+            self.logs["mmd_loss_train"].append(train_mmd/iteration)
+            valid_loss, valid_rec, valid_kl, valid_mmd = self.validate(data_loader_valid, use_mmd=True )
+            self.logs['loss_valid'].append(valid_loss)
+            self.logs["rec_loss_valid"].append(valid_rec)
+            self.logs["KL_loss_valid"].append(valid_kl)
+            self.logs["MMD_loss_valid"].append(valid_mmd)
+
+            if es.step(valid_loss):
+                print("Training stoped with early stopping")
+                break
+
+            if epoch % self.val_check ==0 and epoch!=0:
+                print("Epoch {:02d}, Loss_valid: {:9.4f}, rec_loss_valid: {:9.4f},"
+                      " KL_loss_valid: {:9.4f}, MMD_loss:  {:9.4f} ".format(
+                    epoch, valid_loss, valid_rec, valid_kl, valid_mmd))
+        self.model.eval()
+
+    def train(self, n_epochs=100, batch_size=256, early_patience=15):
 
         es = EarlyStopping(patience=early_patience)
         dataset_train, dataset_valid = self.make_dataset()
@@ -78,6 +138,7 @@ class modelTrainer():
             self.logs['loss_valid'].append(valid_loss)
             self.logs["rec_loss_valid"].append(valid_rec)
             self.logs["KL_loss_valid"].append(valid_kl)
+
             if es.step(valid_loss):
                 print("Training stoped with early stopping")
                 break
@@ -87,28 +148,42 @@ class modelTrainer():
                     epoch, valid_loss, valid_rec, valid_kl))
         self.model.eval()
 
-    def validate(self, validation_data):
+    def validate(self, validation_data, use_mmd=False):
         self.model.eval()
         with torch.no_grad():
             valid_loss = 0
             valid_rec = 0
             valid_kl = 0
+            valid_mmd = 0
             for iteration, (x, y) in enumerate(validation_data):
                 if y is not None:
                     x, y = x.to(self.device), y.to(self.device)
                 else:
                     x = x.to(self.device)
                 if self.model.num_cls is not None:
-                    recon_x, mean, log_var = self.model(x, y)
+                    if self.model.use_mmd:
+                        recon_x, mean, log_var, y_mmd = self.model(x, y)
+                    else:
+                        recon_x, mean, log_var = self.model(x, y)
                 else:
                     recon_x, mean, log_var = self.model(x)
-                loss, reconstruction_loss, kl_loss = MSE_kl(recon_x, x, mean, log_var, self.model.alpha)
-                valid_loss += loss.item()
+                valid_vae_loss, reconstruction_loss, kl_loss = MSE_kl(recon_x, x, mean, log_var, self.model.alpha)
+                if self.model.use_mmd:
+                    mms_calculator = mmd(self.model.num_cls, 10)
+                    valid_mmd = mms_calculator(y_mmd, y)
+                if use_mmd:
+                    valid_loss = valid_vae_loss.item() + valid_mmd.item()
+                else:
+                    valid_loss = valid_vae_loss.item()
                 valid_rec += reconstruction_loss.item()
                 valid_kl += kl_loss.item()
+                if use_mmd:
+                    valid_mmd += valid_mmd.item()
         self.model.train()
-        return valid_loss/iteration, valid_rec/iteration, valid_kl/iteration
-
+        if use_mmd:
+            return valid_loss/iteration, valid_rec/iteration, valid_kl/iteration, valid_mmd/iteration
+        else:
+            return valid_loss/iteration, valid_rec/iteration, valid_kl/iteration
 
 #taken from https://gist.github.com/stefanonardo/693d96ceb2f531fa05db530f3e21517d
 class EarlyStopping(object):

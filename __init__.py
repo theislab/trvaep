@@ -1,4 +1,4 @@
-"""trVAE - Regularized Conditional Variational Autoencoders"""
+"""trVAE - Transfer Variational Autoencoders"""
 
 
 

@@ -172,9 +172,9 @@ class ModelTrainer:
                     mms_calculator = mmd(self.model.num_cls, 10)
                     valid_mmd = mms_calculator(y_mmd, y)
                 if use_mmd:
-                    valid_loss = valid_vae_loss.item() + valid_mmd.item()
+                    valid_loss += valid_vae_loss.item() + valid_mmd.item()
                 else:
-                    valid_loss = valid_vae_loss.item()
+                    valid_loss += valid_vae_loss.item()
                 valid_rec += reconstruction_loss.item()
                 valid_kl += kl_loss.item()
                 if use_mmd:

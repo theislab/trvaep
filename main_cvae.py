@@ -1,5 +1,5 @@
 from model import CVAE
-from model import modelTrainer
+from model import ModelTrainer
 import scanpy as sc
 
 
@@ -12,9 +12,9 @@ adata = adata[:, adata.var['highly_variable']]
 n_conditions = adata.obs["condition"].unique().shape[0]
 model = CVAE(adata.n_vars, num_classes=n_conditions,
              encoder_layer_sizes=[64], decoder_layer_sizes=[64], latent_dim=10, alpha=0.0001)
-trainer = modelTrainer(model, adata)
-trainer.train(300, 128)
-data = model.get_latent(adata.X, model.label_encoder.transform(adata.obs["condition"]))
+trainer = ModelTrainer(model, adata)
+trainer.train(50, 128)
+data = model.get_latent(adata.X.A, model.label_encoder.transform(adata.obs["condition"]))
 adata_latent = sc.AnnData(data)
 adata_latent.obs["cell_type"] = adata.obs["cell_type"].tolist()
 adata_latent.obs["condition"] = adata.obs["condition"].tolist()

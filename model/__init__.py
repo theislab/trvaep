@@ -1,2 +1,2 @@
 from ._cvae import CVAE
-from .train import modelTrainer
+from .train import ModelTrainer

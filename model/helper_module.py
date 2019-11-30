@@ -36,8 +36,9 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
 
     def __init__(self, layer_sizes, latent_dim,
-                 use_bn, use_dr, dr_rate, num_classes=None):
+                 use_bn, use_dr, dr_rate, use_mmd=False, num_classes=None):
         super().__init__()
+        self.use_mmd = use_mmd
         if num_classes is not None:
             self.n_classes = num_classes
             input_size = latent_dim + num_classes
@@ -63,4 +64,7 @@ class Decoder(nn.Module):
             c = one_hot_encoder(c, n_cls=self.n_classes)
             z = torch.cat((z, c), dim=-1)
         x = self.FC(z)
+        if self.use_mmd:
+            y = self.FC.A0(z)
+            return x, y
         return x

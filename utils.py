@@ -1,6 +1,5 @@
 from random import shuffle
 import torch
-import anndata
 import numpy as np
 import scanpy as sc
 from scipy import sparse
@@ -144,3 +143,11 @@ def shuffle_adata(adata):
     shuffle(ind_list)
     new_adata = adata[ind_list, :]
     return new_adata
+
+
+def partition(data, partitions, num_partitions):
+      res = []
+      partitions = partitions.flatten()
+      for i in range(num_partitions):
+        res += [data[(partitions == i).nonzero().squeeze(1)]]
+      return res

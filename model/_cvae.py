@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 from .helper_module import Encoder, Decoder
 
 class CVAE(nn.Module):
@@ -59,12 +60,24 @@ class CVAE(nn.Module):
         _, y = self.decoder(z_sample, c)
         return y.data.numpy()
 
+    def predict(self, x, y, target):
+
+        y = self.label_encoder.transform(np.array(y))
+        z = self.get_latent(x, y)
+        target_labels = np.array([target])
+        target_labels = self.label_encoder.transform(np.tile(target_labels, len(y)))
+        predicted = self.reconstruct(z, target_labels, use_latent=True)
+        return predicted
+
     def reconstruct(self, x, c=None, use_latent=False):
         if use_latent:
             x = torch.tensor(x)
             if c is not None:
                 c = torch.tensor(c)
-            reconstructed = self.decoder(x, c)
+            if self.use_mmd:
+                reconstructed, _ = self.decoder(x, c)
+            else:
+                reconstructed = self.decoder(x, c)
             return reconstructed.data.numpy()
         else:
             z = self.get_latent(x, c)

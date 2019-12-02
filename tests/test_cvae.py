@@ -1,7 +1,7 @@
-from model import CVAE
-from model import ModelTrainer
 import scanpy as sc
 
+from model import CVAE
+from model import ModelTrainer
 
 adata = sc.read("./data/kang_count.h5ad")
 sc.pp.normalize_per_cell(adata)
@@ -21,4 +21,3 @@ adata_latent.obs["condition"] = adata.obs["condition"].tolist()
 sc.pp.neighbors(adata_latent)
 sc.tl.umap(adata_latent)
 sc.pl.umap(adata_latent, color=["condition", "cell_type"])
-

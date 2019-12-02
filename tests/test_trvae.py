@@ -4,11 +4,8 @@ import scanpy as sc
 import numpy as np
 
 adata = sc.read("./data/kang_seurat.h5ad")
-
-
 sc.pp.normalize_per_cell(adata)
 sc.pp.log1p(adata)
-sc.pp.filter_genes_dispersion(adata)
 sc.pp.highly_variable_genes(adata, n_top_genes=1000)
 adata = adata[:, adata.var['highly_variable']]
 n_conditions = adata.obs["condition"].unique().shape[0]
@@ -30,7 +27,6 @@ ground_truth = adata_source = adata[(adata.obs["cell_type"] == "pDC")]
 adata_source = adata[(adata.obs["cell_type"] == "pDC") & (adata.obs["condition"] == "CTRL")]
 predicted_data = model.predict(x=adata_source.X.A, y=adata_source.obs["condition"].tolist(),
               target="STIM")
-
 adata_pred = sc.AnnData(predicted_data)
 adata_pred.obs["condition"] = np.tile("predicted", len(adata_pred))
 adata_pred.var_names = adata_source.var_names.tolist()

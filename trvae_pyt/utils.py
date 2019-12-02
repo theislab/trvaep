@@ -1,7 +1,8 @@
 from random import shuffle
-import torch
+
 import numpy as np
 import scanpy as sc
+import torch
 from scipy import sparse
 from sklearn.preprocessing import LabelEncoder
 
@@ -72,7 +73,6 @@ def label_encoder(adata, label_encoder=None, condition_key='condition'):
             Array of encoded labels
         Example
         --------
-        >>> import trvae
         >>> import scanpy as sc
         >>> train_data = sc.read("./data/train.h5ad")
         >>> train_labels, label_encoder = label_encoder(train_data)
@@ -89,10 +89,12 @@ def label_encoder(adata, label_encoder=None, condition_key='condition'):
 
 
 def one_hot_encoder(idx, n_cls):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     assert torch.max(idx).item() < n_cls
     if idx.dim() == 1:
         idx = idx.unsqueeze(1)
     onehot = torch.zeros(idx.size(0), n_cls)
+    onehot = onehot.to(device)
     onehot.scatter_(1, idx.long(), 1)
     return onehot
 
@@ -146,8 +148,8 @@ def shuffle_adata(adata):
 
 
 def partition(data, partitions, num_partitions):
-      res = []
-      partitions = partitions.flatten()
-      for i in range(num_partitions):
+    res = []
+    partitions = partitions.flatten()
+    for i in range(num_partitions):
         res += [data[(partitions == i).nonzero().squeeze(1)]]
-      return res
+    return res

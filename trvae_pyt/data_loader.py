@@ -1,13 +1,13 @@
-from torch.utils.data import Dataset
-from utils import remove_sparsity
 import numpy as np
-from scipy import sparse
 import torch
+from scipy import sparse
 from sklearn.preprocessing import LabelEncoder
+from torch.utils.data import Dataset
+
+from trvae_pyt.utils import remove_sparsity
 
 
 def label_encoder(adata, label_encoder=None, condition_key='condition'):
-
     if label_encoder is None:
         le = LabelEncoder()
         labels = le.fit_transform(adata.obs[condition_key].tolist())
@@ -51,8 +51,3 @@ class CustomDatasetFromAdata(Dataset):
 
     def get_label_ecnoder(self):
         return self.le
-
-
-
-
-

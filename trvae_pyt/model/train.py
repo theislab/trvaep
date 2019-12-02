@@ -1,16 +1,47 @@
-from  utils import train_test_split
-from model._losses import MSE_kl, mmd
-from torch.utils.data import DataLoader
-import torch
 from collections import defaultdict
-from model.data_loader import CustomDatasetFromAdata
-import  numpy as np
+
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+
+from trvae_pyt.model._losses import MSE_kl, mmd
+from trvae_pyt.data_loader import CustomDatasetFromAdata
+from trvae_pyt.utils import train_test_split
 
 
-class ModelTrainer:
+class Trainer:
     def __init__(self, model, adata,
                  condition_key="condition", seed=0, print_every=1000,
                  learning_rate=0.001, validation_itr=5, train_frac=0.85):
+        """
+                trVAE Network class. This class contains the implementation of Regularized Conditional
+                Variational Auto-encoder network.
+                # Parameters
+                    model: CVAE
+                        a CVAE model object.
+                    adata: `~anndata.AnnData`
+                    `AnnData` object for training the model.
+
+                    condition_key: str
+                       The observation key in which data conditions are stored
+                    seed: integer
+                        Random seed for training initialization.
+
+                    print_every= integer
+                        How often print the loss values after, by default after every 1000 iterations.
+
+                    learning_rate: float
+                        Learning rate for the optimizer.
+
+                    validation_itr: integer
+                        How often print validation error, by default after every 5 epochs.
+
+                    train_frac= float
+                        Train-test split fraction. the model will be trained with train_frac for training
+                        and 1-train_frac for validation.
+
+
+            """
 
         self.model = model
         self.adata = adata
@@ -24,7 +55,9 @@ class ModelTrainer:
         if torch.cuda.is_available():
             torch.cuda.manual_seed(seed)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.device = self.device
         self.logs = defaultdict(list)
+        self.model.to(self.device)
 
     def make_dataset(self):
         train_adata, validation_adata = train_test_split(self.adata, self.train_frac)
@@ -35,6 +68,32 @@ class ModelTrainer:
 
     def train_trvae(self, n_epochs=100, batch_size=64, early_patience=15):
 
+        """
+                    Trains a CVAE model `n_epochs` times with given `batch_size`. This function is using `early stopping`
+                    technique to prevent overfitting.
+                    # Parameters
+                        n_epochs: int
+                            number of epochs to iterate and optimize network weights
+                        batch_size: int
+                            number of samples to be used in each batch for network weights optimization
+                        early_patience: int
+                            number of consecutive epochs in which network loss is not going lower.
+                            After this limit, the network will stop training.
+                    # Returns
+                        Nothing will be returned
+                    # Example
+                    ```python
+                    adata = sc.read("./data/kang_seurat.h5ad")
+                    n_conditions = adata.obs["condition"].unique().shape[0]
+                    adata_train = adata[~((adata.obs["cell_type"] == "pDC")
+                                          & (adata.obs["condition"] == "CTRL"))]
+                    model = CVAE(adata_train.n_vars, num_classes=n_conditions,
+                                 encoder_layer_sizes=[64], decoder_layer_sizes=[64], latent_dim=10, alpha=0.0001,
+                                 use_mmd=True, beta=10)
+                    trainer = Trainer(model, adata_train)
+                    trainer.train_trvae(100, 64)
+                    ```
+        """
         es = EarlyStopping(patience=early_patience)
         dataset_train, dataset_valid = self.make_dataset()
         data_loader_train = torch.utils.data.DataLoader(dataset=dataset_train,
@@ -74,11 +133,11 @@ class ModelTrainer:
                           "rec_loss: {:9.4f}, KL_loss: {:9.4f}, MMD_loss:  {:9.4f}".format(
                         epoch, n_epochs, iteration, len(data_loader_train) - 1,
                         loss.item(), reconstruction_loss.item(), kl_loss.item(), mdd_loss.item()))
-            self.logs['loss_train'].append(train_loss/iteration)
-            self.logs["rec_loss_train"].append(train_rec/iteration)
-            self.logs["KL_loss_train"].append(train_kl/iteration)
-            self.logs["mmd_loss_train"].append(train_mmd/iteration)
-            valid_loss, valid_rec, valid_kl, valid_mmd = self.validate(data_loader_valid, use_mmd=True )
+            self.logs['loss_train'].append(train_loss / iteration)
+            self.logs["rec_loss_train"].append(train_rec / iteration)
+            self.logs["KL_loss_train"].append(train_kl / iteration)
+            self.logs["mmd_loss_train"].append(train_mmd / iteration)
+            valid_loss, valid_rec, valid_kl, valid_mmd = self.validate(data_loader_valid, use_mmd=True)
             self.logs['loss_valid'].append(valid_loss)
             self.logs["rec_loss_valid"].append(valid_rec)
             self.logs["KL_loss_valid"].append(valid_kl)
@@ -88,13 +147,40 @@ class ModelTrainer:
                 print("Training stoped with early stopping")
                 break
 
-            if epoch % self.val_check ==0 and epoch!=0:
+            if epoch % self.val_check == 0 and epoch != 0:
                 print("Epoch {:02d}, Loss_valid: {:9.4f}, rec_loss_valid: {:9.4f},"
                       " KL_loss_valid: {:9.4f}, MMD_loss:  {:9.4f} ".format(
                     epoch, valid_loss, valid_rec, valid_kl, valid_mmd))
         self.model.eval()
 
     def train(self, n_epochs=100, batch_size=256, early_patience=15):
+
+        """
+                    Trains a CVAE model `n_epochs` times with given `batch_size`. This function is using `early stopping`
+                    technique to prevent overfitting.
+                    # Parameters
+                        n_epochs: int
+                            number of epochs to iterate and optimize network weights
+                        batch_size: int
+                            number of samples to be used in each batch for network weights optimization
+                        early_patience: int
+                            number of consecutive epochs in which network loss is not going lower.
+                            After this limit, the network will stop training.
+                    # Returns
+                        Nothing will be returned
+                    # Example
+                    ```python
+                    adata = sc.read("./data/kang_seurat.h5ad")
+                    n_conditions = adata.obs["condition"].unique().shape[0]
+                    adata_train = adata[~((adata.obs["cell_type"] == "pDC")
+                                          & (adata.obs["condition"] == "CTRL"))]
+                    model = CVAE(adata_train.n_vars, num_classes=n_conditions,
+                                 encoder_layer_sizes=[64], decoder_layer_sizes=[64], latent_dim=10, alpha=0.0001,
+                                 use_mmd=True, beta=10)
+                    trainer = Trainer(model, adata_train)
+                    trainer.train(100, 64)
+                    ```
+        """
 
         es = EarlyStopping(patience=early_patience)
         dataset_train, dataset_valid = self.make_dataset()
@@ -128,12 +214,13 @@ class ModelTrainer:
                 train_rec += reconstruction_loss.item()
                 train_kl += kl_loss.item()
                 if iteration % self.print_loss == 0 or iteration == len(data_loader_train) - 1:
-                    print("Epoch {:02d}/{:02d} Batch {:04d}/{:d}, Loss: {:9.4f}, rec_loss: {:9.4f}, KL_loss: {:9.4f}".format(
-                        epoch, n_epochs, iteration, len(data_loader_train) - 1,
-                        loss.item(), reconstruction_loss.item(), kl_loss.item()))
-            self.logs['loss_train'].append(train_loss/iteration)
-            self.logs["rec_loss_train"].append(train_rec/iteration)
-            self.logs["KL_loss_train"].append(train_kl/iteration)
+                    print(
+                        "Epoch {:02d}/{:02d} Batch {:04d}/{:d}, Loss: {:9.4f}, rec_loss: {:9.4f}, KL_loss: {:9.4f}".format(
+                            epoch, n_epochs, iteration, len(data_loader_train) - 1,
+                            loss.item(), reconstruction_loss.item(), kl_loss.item()))
+            self.logs['loss_train'].append(train_loss / iteration)
+            self.logs["rec_loss_train"].append(train_rec / iteration)
+            self.logs["KL_loss_train"].append(train_kl / iteration)
             valid_loss, valid_rec, valid_kl = self.validate(data_loader_valid)
             self.logs['loss_valid'].append(valid_loss)
             self.logs["rec_loss_valid"].append(valid_rec)
@@ -143,12 +230,35 @@ class ModelTrainer:
                 print("Training stoped with early stopping")
                 break
 
-            if epoch % self.val_check ==0 and epoch!=0:
+            if epoch % self.val_check == 0 and epoch != 0:
                 print("Epoch {:02d}, Loss_valid: {:9.4f}, rec_loss_valid: {:9.4f}, KL_loss_valid: {:9.4f}".format(
                     epoch, valid_loss, valid_rec, valid_kl))
         self.model.eval()
 
     def validate(self, validation_data, use_mmd=False):
+        """
+                            Validat a CVAE model using  `validation_data`.
+                            # Parameters
+                                validation_data: `~anndata.AnnData`
+                                    `AnnData` object for validating the model.
+                                use_mmd: boolean
+                                    If `True` the mmd loss wil be returned
+                            # Returns
+                                if `use_mmd` is `True` return following four `float`
+
+                                valid_loss: float
+                                    sum of all the losses
+
+                                valid_rec: float
+                                    reconstruction loss for the validation data
+
+                                valid_kl: float
+                                    KL loss for the validation data
+
+                                valid_mmd: float
+                                    MMD loss for validation data
+
+                """
         self.model.eval()
         with torch.no_grad():
             valid_loss = 0
@@ -181,11 +291,12 @@ class ModelTrainer:
                     valid_mmd += valid_mmd.item()
         self.model.train()
         if use_mmd:
-            return valid_loss/iteration, valid_rec/iteration, valid_kl/iteration, valid_mmd/iteration
+            return valid_loss / iteration, valid_rec / iteration, valid_kl / iteration, valid_mmd / iteration
         else:
-            return valid_loss/iteration, valid_rec/iteration, valid_kl/iteration
+            return valid_loss / iteration, valid_rec / iteration, valid_kl / iteration
 
-#taken from https://gist.github.com/stefanonardo/693d96ceb2f531fa05db530f3e21517d
+
+# taken from https://gist.github.com/stefanonardo/693d96ceb2f531fa05db530f3e21517d
 class EarlyStopping(object):
     def __init__(self, mode='min', min_delta=0, patience=10, percentage=False):
         self.mode = mode
@@ -230,8 +341,7 @@ class EarlyStopping(object):
         else:
             if mode == 'min':
                 self.is_better = lambda a, best: a < best - (
-                            best * min_delta / 100)
+                        best * min_delta / 100)
             if mode == 'max':
                 self.is_better = lambda a, best: a > best + (
-                            best * min_delta / 100)
-
+                        best * min_delta / 100)

@@ -1,12 +1,14 @@
 import torch
 from torch_two_sample import MMDStatistic
-from utils import partition
+
+from trvae_pyt.utils import partition
+
 
 def MSE_kl(recon_x, x, mu, logvar, alpha=.1):
     mse_loss = torch.nn.functional.mse_loss(recon_x, x, reduction="sum")
-    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(),)
-    loss = (mse_loss + alpha * kl_loss)/ x.size(0)
-    return loss, mse_loss/x.size(0), (alpha*kl_loss)/x.size(0)
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), )
+    loss = (mse_loss + alpha * kl_loss) / x.size(0)
+    return loss, mse_loss / x.size(0), (alpha * kl_loss) / x.size(0)
 
 
 def mmd(n_conditions, beta):
@@ -16,7 +18,8 @@ def mmd(n_conditions, beta):
         loss = 0.0
         for i in range(len(conditions_mmd)):
             for j in range(i):
-                mmd_calculator = MMDStatistic(conditions_mmd[j].size(0), conditions_mmd[j+1].size(0))
+                mmd_calculator = MMDStatistic(conditions_mmd[j].size(0), conditions_mmd[j + 1].size(0))
                 loss += mmd_calculator(conditions_mmd[j], conditions_mmd[j + 1], alphas=alphas)
         return beta * loss
+
     return mmd_loss

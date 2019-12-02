@@ -1,9 +1,9 @@
 import scanpy as sc
 
-from model import CVAE
-from model import ModelTrainer
+from trvae_pyt.model import CVAE
+from trvae_pyt.model import Trainer
 
-adata = sc.read("./data/kang_count.h5ad")
+adata = sc.read("../data/kang_seurat.h5ad")
 sc.pp.normalize_per_cell(adata)
 sc.pp.log1p(adata)
 sc.pp.filter_genes_dispersion(adata)
@@ -12,7 +12,7 @@ adata = adata[:, adata.var['highly_variable']]
 n_conditions = adata.obs["condition"].unique().shape[0]
 model = CVAE(adata.n_vars, num_classes=n_conditions,
              encoder_layer_sizes=[64], decoder_layer_sizes=[64], latent_dim=10, alpha=0.0001)
-trainer = ModelTrainer(model, adata)
+trainer = Trainer(model, adata)
 trainer.train(50, 128)
 data = model.get_latent(adata.X.A, model.label_encoder.transform(adata.obs["condition"]))
 adata_latent = sc.AnnData(data)

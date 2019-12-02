@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from utils import one_hot_encoder
+
+from trvae_pyt.utils import one_hot_encoder
 
 
 class Encoder(nn.Module):
@@ -9,7 +10,7 @@ class Encoder(nn.Module):
         super().__init__()
         self.n_classes = num_classes
         if num_classes is not None:
-                layer_sizes[0] += num_classes
+            layer_sizes[0] += num_classes
         self.FC = nn.Sequential()
         for i, (in_size, out_size) in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
             self.FC.add_module(
@@ -45,8 +46,8 @@ class Decoder(nn.Module):
         else:
             input_size = latent_dim
         self.FC = nn.Sequential()
-        for i, (in_size, out_size) in enumerate(zip([input_size]+layer_sizes[:-1], layer_sizes)):
-            if i+1 < len(layer_sizes):
+        for i, (in_size, out_size) in enumerate(zip([input_size] + layer_sizes[:-1], layer_sizes)):
+            if i + 1 < len(layer_sizes):
                 self.FC.add_module(
                     name="L{:d}".format(i), module=nn.Linear(in_size, out_size, bias=False))
                 if use_bn:

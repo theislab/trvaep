@@ -21,3 +21,4 @@ adata_latent.obs["condition"] = adata.obs["condition"].tolist()
 sc.pp.neighbors(adata_latent)
 sc.tl.umap(adata_latent)
 sc.pl.umap(adata_latent, color=["condition", "cell_type"])
+

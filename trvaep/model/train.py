@@ -4,15 +4,15 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from trvae_pyt.model._losses import MSE_kl, mmd
-from trvae_pyt.data_loader import CustomDatasetFromAdata
-from trvae_pyt.utils import train_test_split
+from trvaep.model._losses import MSE_kl, mmd
+from trvaep.data_loader import CustomDatasetFromAdata
+from trvaep.utils import train_test_split
 
 
 class Trainer:
     def __init__(self, model, adata,
-                 condition_key="condition", seed=0, print_every=1000,
-                 learning_rate=0.001, validation_itr=5, train_frac=0.85):
+                 condition_key="condition", seed=0, print_every=2000,
+                 learning_rate=0.001, validation_itr=20, train_frac=0.85):
         """
                 trVAE Network class. This class contains the implementation of Regularized Conditional
                 Variational Auto-encoder network.
@@ -66,7 +66,7 @@ class Trainer:
         self.model.label_encoder = data_set_train.get_label_ecnoder()
         return data_set_train, data_set_valid
 
-    def train_trvae(self, n_epochs=100, batch_size=64, early_patience=15):
+    def train_trvae(self, n_epochs=100, batch_size=512, early_patience=15):
 
         """
                     Trains a CVAE model `n_epochs` times with given `batch_size`. This function is using `early stopping`

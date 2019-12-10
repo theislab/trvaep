@@ -1,7 +1,7 @@
 import torch
 from torch_two_sample import MMDStatistic
 
-from trvae_pyt.utils import partition
+from trvaep.utils import partition
 
 
 def MSE_kl(recon_x, x, mu, logvar, alpha=.1):

@@ -35,8 +35,8 @@ class CVAE(nn.Module):
 
         """
 
-    def __init__(self, input_dim, num_classes=None, encoder_layer_sizes=[128],
-                 latent_dim=10, decoder_layer_sizes=[128], alpha=0.001, use_batch_norm=True,
+    def __init__(self, input_dim, num_classes=None, encoder_layer_sizes=[32, 64, 128],
+                 latent_dim=10, decoder_layer_sizes=[128, 64, 32], alpha=0.001, use_batch_norm=True,
                  dr_rate=0.2, use_mmd=False, beta=1):
         super().__init__()
         assert type(encoder_layer_sizes) == list

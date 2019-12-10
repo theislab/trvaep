@@ -4,7 +4,7 @@ from scipy import sparse
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import Dataset
 
-from trvae_pyt.utils import remove_sparsity
+from trvaep.utils import remove_sparsity
 
 
 def label_encoder(adata, label_encoder=None, condition_key='condition'):

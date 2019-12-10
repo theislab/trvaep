@@ -23,6 +23,8 @@ flit install
 ```
 
 ## Examples
+* For perturbation prediction check this [example](https://nbviewer.jupyter.org/github/theislab/trvaep/blob/master/example/sample_notebook.ipynb)
+ for interferon (IFN)-β stimulation from [Kang et al.](https://www.nature.com/articles/nbt.4042).
 
 ## Reproducing paper results:
 In order to reproduce paper results visit [here](https://github.com/Naghipourfar/trVAE_reproducibility).

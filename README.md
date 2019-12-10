@@ -11,13 +11,13 @@ pip install trvaep
 ```
 or install the development version via pip: 
 ```bash
-pip install git+https://github.com/theislab/trvae.git
+pip install git+https://github.com/theislab/trvaep.git
 ```
 
 or you can first install flit and clone this repository:
 ```bash
 pip install flit
-git clone https://github.com/theislab/trVAE
+git clone https://github.com/theislab/trvaep
 cd trvaep
 flit install
 ```

@@ -7,7 +7,7 @@ A pytorch  implementation of trVAE (transfer Variational Autoencoder). trVAE is 
 ### Installation with pip
 To install the latest version from PyPI, simply use the following bash script:
 ```bash
-pip install trvae_pytorch
+pip install trvaep
 ```
 or install the development version via pip: 
 ```bash
@@ -18,7 +18,7 @@ or you can first install flit and clone this repository:
 ```bash
 pip install flit
 git clone https://github.com/theislab/trVAE
-cd trVAE
+cd trvaep
 flit install
 ```
 

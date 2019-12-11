@@ -12,7 +12,7 @@ description-file = 'README.md'
 requires = [
     "future-fstrings",
     "get_version",
-    "get_version"
+    "get_version",
     "scanpy",
     "adjustText",
     "pytorch",

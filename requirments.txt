@@ -1,7 +1,7 @@
 get_version
 scanpy
 adjustText
-pytorch
+torch
 torchvision
 numpy
 scipy

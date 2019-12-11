@@ -7,4 +7,22 @@ module = "trvaep"
 author = "Mohammad Lotfollahi"
 author-email = "mohammad.lotfollahi@helmholtz-muenchen.de"
 classifiers = ["License :: OSI Approved :: MIT License"]
+description-file = 'README.md'
+
+requires = [
+    "future-fstrings",
+    "get_version",
+    "get_version"
+    "scanpy",
+    "adjustText",
+    "pytorch",
+    "torchvision",
+    "numpy",
+    "scipy",
+    "seaborn"]
+
+[tool.flit.metadata.requires-extra]
+test = [
+    "pytest",
+]
 

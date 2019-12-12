@@ -14,7 +14,7 @@ n_conditions = adata.obs["condition"].unique().shape[0]
 adata_train = adata[~((adata.obs["cell_type"] == "pDC")
                       & (adata.obs["condition"] == "CTRL"))]
 model = CVAE(adata_train.n_vars, num_classes=n_conditions,
-             encoder_layer_sizes=[128, 64, 32], decoder_layer_sizes=[32, 64, 128], latent_dim=10, alpha=0.0001,
+             encoder_layer_sizes=[64], decoder_layer_sizes=[64], latent_dim=10, alpha=0.0001,
              use_mmd=True, beta=10)
 trainer = Trainer(model, adata_train)
 trainer.train_trvae(1, 64, early_patience=20)

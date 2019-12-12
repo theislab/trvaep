@@ -224,8 +224,12 @@ class CVAE(nn.Module):
             z = torch.tensor(z).to(self.device)
             if c is not None:
                 c = torch.tensor(c).to(self.device)
-            reconstructed = self.decoder(z, c)
-            return reconstructed.cpu().data.numpy()
+            if self.use_mmd:
+                reconstructed, _ = self.decoder(z, c)
+                return reconstructed
+            else:
+                reconstructed = self.decoder(z, c)
+                return reconstructed.cpu().data.numpy()
 
     def forward(self, x, c=None):
         z_mean, z_log_var = self.encoder(x, c)

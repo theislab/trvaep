@@ -9,10 +9,16 @@ A pytorch  implementation of trVAE (transfer Variational Autoencoder). trVAE is 
 To install the latest version from PyPI, simply use the following bash script:
 ```bash
 pip install trvaep
+git clone https://github.com/josipd/torch-two-sample
+cd torch-two-sample
+python setup.py install
 ```
 or install the development version via pip: 
 ```bash
 pip install git+https://github.com/theislab/trvaep.git
+git clone https://github.com/josipd/torch-two-sample
+cd torch-two-sample
+python setup.py install
 ```
 
 or you can first install flit and clone this repository:
@@ -21,6 +27,9 @@ pip install flit
 git clone https://github.com/theislab/trvaep
 cd trvaep
 flit install
+git clone https://github.com/josipd/torch-two-sample
+cd torch-two-sample
+python setup.py install
 ```
 
 ## Examples

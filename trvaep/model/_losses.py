@@ -1,5 +1,5 @@
 import torch
-from torch_two_sample import MMDStatistic
+from ..torch_two_sample import MMDStatistic
 
 from trvaep.utils import partition
 

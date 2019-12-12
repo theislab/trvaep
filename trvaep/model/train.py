@@ -66,7 +66,7 @@ class Trainer:
         self.model.label_encoder = data_set_train.get_label_ecnoder()
         return data_set_train, data_set_valid
 
-    def train_trvae(self, n_epochs=100, batch_size=512, early_patience=15):
+    def train_trvae(self, n_epochs=200, batch_size=512, early_patience=20):
 
         """
                     Trains a CVAE model `n_epochs` times with given `batch_size`. This function is using `early stopping`

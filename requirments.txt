@@ -6,3 +6,6 @@ torchvision
 numpy
 scipy
 seaborn
+matplotlib
+adjustText
+pandas

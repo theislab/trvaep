@@ -3,7 +3,7 @@ import scanpy as sc
 
 from trvaep.model import CVAE
 from trvaep.model import Trainer
-from trvaep import pl
+from trvaep.model import pl
 
 adata = sc.read("../data/kang_seurat.h5ad", backup_url="shorturl.at/tNS17")
 sc.pp.normalize_per_cell(adata)

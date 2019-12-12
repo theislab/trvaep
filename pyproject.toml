@@ -19,7 +19,9 @@ requires = [
     "torchvision",
     "numpy",
     "scipy",
-    "seaborn"]
+    "seaborn",
+    "matplotlib",
+    "pandas"]
 
 [tool.flit.metadata.requires-extra]
 test = [

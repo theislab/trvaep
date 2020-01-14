@@ -37,9 +37,10 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
 
     def __init__(self, layer_sizes, latent_dim,
-                 use_bn, use_dr, dr_rate, use_mmd=False, num_classes=None):
+                 use_bn, use_dr, dr_rate, use_mmd=False, num_classes=None, output_active="ReLU"):
         super().__init__()
         self.use_mmd = use_mmd
+        self.op_activation = output_active
         if num_classes is not None:
             self.n_classes = num_classes
             input_size = latent_dim + num_classes
@@ -56,9 +57,12 @@ class Decoder(nn.Module):
                 if use_dr:
                     self.FC.add_module(name="D{:d}".format(i), module=nn.Dropout(p=dr_rate))
             else:
-                self.FC.add_module(
-                    name="L{:d}".format(i), module=nn.Linear(in_size, out_size))
-                self.FC.add_module(name="output", module=nn.ReLU())
+                if self.op_activation == "ReLU":
+                    self.FC.add_module(
+                        name="L{:d}".format(i), module=nn.Linear(in_size, out_size))
+                    self.FC.add_module(name="output", module=nn.ReLU())
+                if self.op_activation == "linear":
+                    self.FC.add_module(name="output".format(i), module=nn.Linear(in_size, out_size))
 
     def forward(self, z, c=None):
         if c is not None:

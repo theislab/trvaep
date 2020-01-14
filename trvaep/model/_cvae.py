@@ -37,7 +37,7 @@ class CVAE(nn.Module):
 
     def __init__(self, input_dim, num_classes=None, encoder_layer_sizes=[64],
                  latent_dim=10, decoder_layer_sizes=[64], alpha=0.001, use_batch_norm=True,
-                 dr_rate=0.2, use_mmd=False, beta=1):
+                 dr_rate=0.2, use_mmd=False, beta=1, output_activation="RelU"):
         super().__init__()
         assert type(encoder_layer_sizes) == list
         assert type(latent_dim) == int
@@ -54,12 +54,13 @@ class CVAE(nn.Module):
             self.use_dr = False
         self.use_bn = use_batch_norm
         self.alpha = alpha
+        self.op_activation = output_activation
         encoder_layer_sizes.insert(0, self.input_dim)
         decoder_layer_sizes.append(self.input_dim)
         self.encoder = Encoder(encoder_layer_sizes, self.latent_dim,
                                self.use_bn, self.use_dr, self.dr_rate, self.num_cls)
         self.decoder = Decoder(decoder_layer_sizes, self.latent_dim,
-                               self.use_bn, self.use_dr, self.dr_rate, self.use_mmd, self.num_cls)
+                               self.use_bn, self.use_dr, self.dr_rate, self.use_mmd, self.num_cls, self.op_activation)
 
     def inference(self, n=1, c=None):
         """

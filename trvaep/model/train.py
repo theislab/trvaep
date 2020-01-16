@@ -290,8 +290,10 @@ class Trainer:
                 if use_mmd:
                     valid_mmd += valid_mmd.item()
         self.model.train()
+        if iteration < 1:
+            iteration = 1
         if use_mmd:
-            return valid_loss / iteration, valid_rec / iteration, valid_kl / iteration, valid_mmd / iteration
+                return valid_loss / iteration, valid_rec / iteration, valid_kl / iteration, valid_mmd / iteration
         else:
             return valid_loss / iteration, valid_rec / iteration, valid_kl / iteration
 

@@ -35,9 +35,9 @@ class CVAE(nn.Module):
 
         """
 
-    def __init__(self, input_dim, num_classes=None, encoder_layer_sizes=[64],
-                 latent_dim=10, decoder_layer_sizes=[64], alpha=0.001, use_batch_norm=True,
-                 dr_rate=0.2, use_mmd=False, beta=1, output_activation="RelU"):
+    def __init__(self, input_dim, num_classes=None, encoder_layer_sizes=[128, 32],
+                 latent_dim=10, decoder_layer_sizes=[32, 128], alpha=0.001, use_batch_norm=True,
+                 dr_rate=0.2, use_mmd=False, beta=10, output_activation="RelU"):
         super().__init__()
         assert type(encoder_layer_sizes) == list
         assert type(latent_dim) == int

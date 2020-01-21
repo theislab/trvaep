@@ -24,7 +24,7 @@ flit install
 ```
 
 ## Examples
-* For simple perturbation prediction check this [example](https://nbviewer.jupyter.org/github/theislab/trvaep/blob/master/example/sample_notebook.ipynb)
+* For simple perturbation prediction and batch-removal check this [example](https://nbviewer.jupyter.org/github/theislab/trvaep/blob/master/example/sample_notebook.ipynb)
  with interferon (IFN)-β stimulation from [Kang et al.](https://www.nature.com/articles/nbt.4042).
  
  * For multi condition perturbation prediction and batch-removal check this [example](https://nbviewer.jupyter.org/github/theislab/trvaep/blob/master/example/multi_condition_sample.ipynb)

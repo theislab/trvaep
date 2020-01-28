@@ -62,8 +62,6 @@ class Decoder(nn.Module):
                         name="L{:d}".format(i), module=nn.Linear(in_size, out_size))
                     self.FC.add_module(name="output", module=nn.ReLU())
                 if self.op_activation == "linear":
-                    self.FC.add_module(
-                        name="L{:d}".format(i), module=nn.Linear(in_size, out_size))
                     self.FC.add_module(name="output".format(i), module=nn.Linear(in_size, out_size))
 
     def forward(self, z, c=None):

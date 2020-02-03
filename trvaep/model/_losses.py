@@ -17,7 +17,11 @@ def mmd(n_conditions, beta):
         conditions_mmd = partition(x, y, n_conditions)
         loss = 0.0
         for i in range(len(conditions_mmd)):
+            if conditions_mmd[i].size(0) < 2:
+                continue
             for j in range(i):
+                if conditions_mmd[j].size(0) < 2:
+                    continue
                 mmd_calculator = MMDStatistic(conditions_mmd[j].size(0), conditions_mmd[j + 1].size(0))
                 loss += mmd_calculator(conditions_mmd[j], conditions_mmd[j + 1], alphas=alphas)
         return beta * loss

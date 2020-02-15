@@ -15,7 +15,8 @@ def mmd(n_conditions, beta):
     def mmd_loss(x, y):
         alphas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10, 15, 20, 25, 30, 35, 100, 1e3, 1e4, 1e5, 1e6]
         conditions_mmd = partition(x, y, n_conditions)
-        loss = 0.0
+        loss = torch.Tensor([0.0])
+        loss = loss.to(conditions_mmd[-1].device)
         for i in range(len(conditions_mmd)):
             if conditions_mmd[i].size(0) < 2:
                 continue

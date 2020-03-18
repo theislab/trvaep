@@ -101,7 +101,8 @@ def one_hot_encoder(idx, n_cls):
 
 def remove_sparsity(adata):
     if sparse.issparse(adata.X):
-        adata.X = adata.X.A
+        adata = sc.AnnData(adata.X.todense(), obs=adata.obs, varm=adata.varm,
+                           var=adata.var)
     return adata
 
 

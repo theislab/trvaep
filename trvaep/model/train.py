@@ -12,7 +12,7 @@ from trvaep.utils import train_test_split
 class Trainer:
     def __init__(self, model, adata,
                  condition_key="condition", seed=0, print_every=2000,
-                 learning_rate=0.001, validation_itr=20, train_frac=0.85):
+                 learning_rate=0.001, validation_itr=20, train_frac=0.85, n_workers=0):
         """
                 trVAE Network class. This class contains the implementation of Regularized Conditional
                 Variational Auto-encoder network.
@@ -39,6 +39,9 @@ class Trainer:
                     train_frac= float
                         Train-test split fraction. the model will be trained with train_frac for training
                         and 1-train_frac for validation.
+                    n_workers= int
+                        num of subsprocess for loading more batches for GPU. value bigger than 1 will require
+                        more RAM and may increase the speed.
 
 
             """
@@ -58,6 +61,7 @@ class Trainer:
         self.model.device = self.device
         self.logs = defaultdict(list)
         self.model.to(self.device)
+        self.n_workers = n_workers
 
     def make_dataset(self):
         train_adata, validation_adata = train_test_split(self.adata, self.train_frac)
@@ -98,10 +102,12 @@ class Trainer:
         dataset_train, dataset_valid = self.make_dataset()
         data_loader_train = torch.utils.data.DataLoader(dataset=dataset_train,
                                                         batch_size=batch_size,
-                                                        shuffle=True)
+                                                        shuffle=True,
+                                                        num_workers=self.n_workers)
         data_loader_valid = torch.utils.data.DataLoader(dataset=dataset_valid,
                                                         batch_size=batch_size,
-                                                        shuffle=True)
+                                                        shuffle=True,
+                                                        num_workers=self.n_workers)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         self.logs = defaultdict(list)
         self.model.train()

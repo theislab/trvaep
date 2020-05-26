@@ -41,6 +41,8 @@ class Decoder(nn.Module):
         super().__init__()
         self.use_mmd = use_mmd
         self.op_activation = output_active
+        self.use_bn = use_bn
+        self.use_dr = use_dr
         if num_classes is not None:
             self.n_classes = num_classes
             input_size = latent_dim + num_classes
@@ -51,10 +53,10 @@ class Decoder(nn.Module):
             if i + 1 < len(layer_sizes):
                 self.FC.add_module(
                     name="L{:d}".format(i), module=nn.Linear(in_size, out_size, bias=False))
-                if use_bn:
+                if self.use_bn:
                     self.FC.add_module("B{:d}".format(i), module=nn.BatchNorm1d(out_size, affine=True))
                 self.FC.add_module(name="A{:d}".format(i), module=nn.ReLU())
-                if use_dr:
+                if self.use_dr:
                     self.FC.add_module(name="D{:d}".format(i), module=nn.Dropout(p=dr_rate))
             else:
                 if self.op_activation == "ReLU":
@@ -70,6 +72,11 @@ class Decoder(nn.Module):
             z = torch.cat((z, c), dim=-1)
         x = self.FC(z)
         if self.use_mmd:
-            y = self.FC.A0(z)
+            y = self.FC.L0(z)
+            if self.use_bn:
+                y = self.FC.B0(y)
+            y = self.FC.A0(y)
+            if self.use_dr:
+                y = self.FC.D0(y)
             return x, y
         return x

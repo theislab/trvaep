@@ -22,8 +22,8 @@ def mmd(n_conditions, beta):
             for j in range(i):
                 if conditions_mmd[j].size(0) < 2:
                     continue
-                mmd_calculator = MMDStatistic(conditions_mmd[j].size(0), conditions_mmd[j + 1].size(0))
-                loss += mmd_calculator(conditions_mmd[j], conditions_mmd[j + 1], alphas=alphas)
+                mmd_calculator = MMDStatistic(conditions_mmd[i].size(0), conditions_mmd[j].size(0))
+                loss += mmd_calculator(conditions_mmd[i], conditions_mmd[j], alphas=alphas)
         return beta * loss
 
     return mmd_loss
